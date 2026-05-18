@@ -1,4 +1,4 @@
-"""Entry point: python -m panda_breath_mqtt"""
+"""Entry point: python -m breathbridge"""
 
 import asyncio
 import logging

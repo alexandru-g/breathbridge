@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field, fields
 
-from .const import WORK_MODE_NAMES, DRYING_MODE_NAMES, SensorStatus
+from .const import WORK_MODE_NAMES, DRYING_MODE_NAMES
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,13 @@ class DeviceState:
     printer_state: int | None = None
     printer_ip: str | None = None
     printer_port: int | None = None
+
+    # Slicer watcher (populated by the bridge, not from device).
+    # Default ON: if you configured PrusaLink, presumably you want this to act.
+    # The retained command from HA's switch persists user changes across restarts.
+    gcode_chamber_temp_enabled: bool = True
+    gcode_chamber_target: int | None = None
+    gcode_print_file: str | None = None
 
 
 # Map from wire field names to DeviceState field names
@@ -112,16 +119,16 @@ class StateTracker:
         if s.fw_version is not None:
             payload["fw_version"] = s.fw_version
 
-        # Binary sensors: 0 = OFF (ok), nonzero = ON (problem)
-        if s.ptc_sensor_status is not None:
-            payload["ptc_sensor_status"] = "OFF" if s.ptc_sensor_status == SensorStatus.OK else "ON"
-        if s.warehouse_sensor_status is not None:
-            payload["warehouse_sensor_status"] = (
-                "OFF" if s.warehouse_sensor_status == SensorStatus.OK else "ON"
-            )
 
         # Extra info
         if s.ptc_heater_status is not None:
             payload["ptc_heater_status"] = s.ptc_heater_status
+
+        # Slicer watcher fields
+        payload["gcode_chamber_temp_enabled"] = "ON" if s.gcode_chamber_temp_enabled else "OFF"
+        if s.gcode_chamber_target is not None:
+            payload["gcode_chamber_target"] = s.gcode_chamber_target
+        if s.gcode_print_file is not None:
+            payload["gcode_print_file"] = s.gcode_print_file
 
         return payload

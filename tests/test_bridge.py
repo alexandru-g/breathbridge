@@ -1,7 +1,7 @@
 """Tests for bridge command dispatch."""
 
-from panda_breath_mqtt.bridge import Bridge
-from panda_breath_mqtt.config import Settings
+from breathbridge.bridge import Bridge
+from breathbridge.config import Settings
 
 
 def _make_bridge() -> Bridge:

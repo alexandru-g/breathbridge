@@ -6,7 +6,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
-rm -rf "$SCRIPT_DIR/panda_breath_mqtt"
-cp -r "$REPO_DIR/src/panda_breath_mqtt" "$SCRIPT_DIR/panda_breath_mqtt"
+rm -rf "$SCRIPT_DIR/breathbridge"
+cp -r "$REPO_DIR/src/breathbridge" "$SCRIPT_DIR/breathbridge"
 
-echo "Add-on prepared. Source copied to ha-addon/panda_breath_mqtt/"
+echo "Add-on prepared. Source copied to ha-addon/breathbridge/"

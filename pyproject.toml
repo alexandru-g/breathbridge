@@ -3,21 +3,22 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "panda-breath-mqtt"
-version = "0.1.0"
-description = "MQTT bridge for Biqu Panda Breath — Home Assistant integration via MQTT Discovery"
+name = "breathbridge"
+version = "0.7.0"
+description = "Integrates the Biqu Panda Breath with Home Assistant, Moonraker (faked), PrusaLink and PrusaSlicer gcode"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "websockets>=13.0",
     "aiomqtt>=2.0",
+    "aiohttp>=3.9",
     "pydantic>=2.0",
     "pydantic-settings>=2.0",
 ]
 
 [project.scripts]
-panda-breath-mqtt = "panda_breath_mqtt.__main__:main"
+breathbridge = "breathbridge.__main__:main"
 
 [project.optional-dependencies]
 dev = [
@@ -26,7 +27,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/panda_breath_mqtt"]
+packages = ["src/breathbridge"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

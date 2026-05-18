@@ -37,6 +37,13 @@ class DeviceState:
     printer_ip: str | None = None
     printer_port: int | None = None
 
+    # Slicer watcher (populated by the bridge, not from device).
+    # Default ON: if you configured PrusaLink, presumably you want this to act.
+    # The retained command from HA's switch persists user changes across restarts.
+    gcode_chamber_temp_enabled: bool = True
+    gcode_chamber_target: int | None = None
+    gcode_print_file: str | None = None
+
 
 # Map from wire field names to DeviceState field names
 _SETTINGS_FIELD_MAP = {
@@ -116,5 +123,12 @@ class StateTracker:
         # Extra info
         if s.ptc_heater_status is not None:
             payload["ptc_heater_status"] = s.ptc_heater_status
+
+        # Slicer watcher fields
+        payload["gcode_chamber_temp_enabled"] = "ON" if s.gcode_chamber_temp_enabled else "OFF"
+        if s.gcode_chamber_target is not None:
+            payload["gcode_chamber_target"] = s.gcode_chamber_target
+        if s.gcode_print_file is not None:
+            payload["gcode_print_file"] = s.gcode_print_file
 
         return payload

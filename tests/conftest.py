@@ -2,7 +2,7 @@
 
 import pytest
 
-from panda_breath_mqtt.config import Settings
+from breathbridge.config import Settings
 
 
 @pytest.fixture

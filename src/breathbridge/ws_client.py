@@ -56,6 +56,7 @@ class PandaBreathWS:
                     await self.connect()
 
                 async for raw in self._ws:
+                    logger.debug("WS recv: %s", raw[:500] if isinstance(raw, str) else raw)
                     try:
                         data = json.loads(raw)
                         yield data

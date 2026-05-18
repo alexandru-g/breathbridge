@@ -1,6 +1,6 @@
 """Tests for device state tracking."""
 
-from panda_breath_mqtt.state import StateTracker
+from breathbridge.state import StateTracker
 
 
 def test_initial_state_is_none():

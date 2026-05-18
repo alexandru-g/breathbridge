@@ -2,12 +2,12 @@
 
 import json
 
-from panda_breath_mqtt.discovery import generate_discovery_configs
+from breathbridge.discovery import generate_discovery_configs
 
 
 def test_generates_all_entities(settings):
     configs = generate_discovery_configs(settings)
-    assert len(configs) == 13
+    assert len(configs) == 16
 
     # All config topics should be under the discovery prefix
     for topic, payload in configs:
@@ -45,9 +45,9 @@ def test_climate_entity(settings):
 def test_switch_entities(settings):
     configs = generate_discovery_configs(settings)
     switches = [(t, p) for t, p in configs if "/switch/" in t]
-    assert len(switches) == 2
+    assert len(switches) == 3
     names = {p["name"] for _, p in switches}
-    assert names == {"Power", "Drying"}
+    assert names == {"Power", "Drying", "Auto Chamber Temp from G-code"}
 
 
 def test_select_entities(settings):
@@ -67,7 +67,7 @@ def test_number_entities(settings):
 def test_sensor_entities(settings):
     configs = generate_discovery_configs(settings)
     sensors = [(t, p) for t, p in configs if "/sensor/" in t]
-    assert len(sensors) == 3
+    assert len(sensors) == 5
     temp_sensor = next(p for _, p in sensors if p["name"] == "Enclosure Temperature")
     assert temp_sensor["device_class"] == "temperature"
 

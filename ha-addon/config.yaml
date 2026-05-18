@@ -1,15 +1,19 @@
-name: "Panda Breath MQTT Bridge"
-version: "0.3.5"
+name: "BreathBridge"
+version: "0.7.2"
 hassio_api: true
 slug: "panda_breath_mqtt"
-description: "Bridges Biqu Panda Breath to Home Assistant via MQTT Discovery"
-url: "https://github.com/alexandru-g/panda-breath-mqtt"
+description: "Integrates the Biqu Panda Breath with Home Assistant, Moonraker (faked), PrusaLink and PrusaSlicer gcode"
+url: "https://github.com/alexandru-g/breathbridge"
 arch:
   - amd64
   - aarch64
   - armv7
 startup: application
 boot: auto
+ports:
+  7125/tcp: 7125
+ports_description:
+  7125/tcp: "Fake Moonraker (set this in Panda Breath > Klipper > IP/Port)"
 options:
   ws_host: ""
   mqtt_host: "core-mosquitto"
@@ -19,6 +23,15 @@ options:
   device_name: "Panda Breath"
   device_id: "panda_breath"
   log_level: "INFO"
+  moonraker_enabled: true
+  moonraker_port: 7125
+  prusalink_host: ""
+  prusalink_port: 80
+  prusalink_api_key: ""
+  prusalink_poll_interval: 5.0
+  slicer_watcher_enabled: true
+  slicer_watcher_poll_interval: 10.0
+  slicer_watcher_tail_bytes: 50000
 schema:
   ws_host: str
   mqtt_host: str
@@ -28,3 +41,12 @@ schema:
   device_name: str?
   device_id: str?
   log_level: "list(DEBUG|INFO|WARNING|ERROR)?"
+  moonraker_enabled: bool
+  moonraker_port: port
+  prusalink_host: str?
+  prusalink_port: port
+  prusalink_api_key: password?
+  prusalink_poll_interval: float
+  slicer_watcher_enabled: bool
+  slicer_watcher_poll_interval: float
+  slicer_watcher_tail_bytes: int

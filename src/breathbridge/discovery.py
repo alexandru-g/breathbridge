@@ -196,4 +196,40 @@ def generate_discovery_configs(
         "entity_category": "config",
     })
 
+    # Switch: Auto-set chamber temp from gcode.
+    # retain=true so HA persists the user's choice across addon restarts —
+    # without it, the bridge would reset to its dataclass default on every reboot.
+    _add("switch", "gcode_chamber_temp", {
+        "name": "Auto Chamber Temp from G-code",
+        "state_topic": "~/state",
+        "value_template": "{{ value_json.gcode_chamber_temp_enabled }}",
+        "command_topic": "~/cmd/gcode_chamber_temp",
+        "payload_on": "ON",
+        "payload_off": "OFF",
+        "retain": True,
+        "icon": "mdi:file-code",
+        "entity_category": "config",
+    })
+
+    # Sensor: Last parsed chamber target (informational)
+    _add("sensor", "gcode_chamber_target", {
+        "name": "G-code Chamber Target",
+        "state_topic": "~/state",
+        "value_template": "{{ value_json.gcode_chamber_target }}",
+        "unit_of_measurement": "°C",
+        "device_class": "temperature",
+        "state_class": "measurement",
+        "icon": "mdi:thermometer-auto",
+        "entity_category": "diagnostic",
+    })
+
+    # Sensor: Last seen print filename (informational)
+    _add("sensor", "gcode_print_file", {
+        "name": "G-code Print File",
+        "state_topic": "~/state",
+        "value_template": "{{ value_json.gcode_print_file }}",
+        "icon": "mdi:file",
+        "entity_category": "diagnostic",
+    })
+
     return configs

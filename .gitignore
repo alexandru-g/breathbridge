@@ -17,5 +17,3 @@ venv/
 # NOTE: ha-addon/panda_breath_mqtt/ is checked in — HA builds from this directory
 ha-addon/panda_breath_mqtt/__pycache__/
 
-# Reverse engineering artifact
-pandabreath_full_page.html

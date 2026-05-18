@@ -186,27 +186,6 @@ def generate_discovery_configs(
         "entity_category": "diagnostic",
     })
 
-    # Binary Sensor: PTC Sensor
-    _add("binary_sensor", "ptc_sensor_status", {
-        "name": "PTC Sensor",
-        "state_topic": "~/state",
-        "value_template": "{{ value_json.ptc_sensor_status }}",
-        "device_class": "problem",
-        "payload_on": "ON",
-        "payload_off": "OFF",
-        "entity_category": "diagnostic",
-    })
-
-    # Binary Sensor: Enclosure Sensor
-    _add("binary_sensor", "warehouse_sensor_status", {
-        "name": "Enclosure Sensor",
-        "state_topic": "~/state",
-        "value_template": "{{ value_json.warehouse_sensor_status }}",
-        "device_class": "problem",
-        "payload_on": "ON",
-        "payload_off": "OFF",
-        "entity_category": "diagnostic",
-    })
 
     # Button: Restart
     _add("button", "reset", {
@@ -215,6 +194,42 @@ def generate_discovery_configs(
         "payload_press": "PRESS",
         "device_class": "restart",
         "entity_category": "config",
+    })
+
+    # Switch: Auto-set chamber temp from gcode.
+    # retain=true so HA persists the user's choice across addon restarts —
+    # without it, the bridge would reset to its dataclass default on every reboot.
+    _add("switch", "gcode_chamber_temp", {
+        "name": "Auto Chamber Temp from G-code",
+        "state_topic": "~/state",
+        "value_template": "{{ value_json.gcode_chamber_temp_enabled }}",
+        "command_topic": "~/cmd/gcode_chamber_temp",
+        "payload_on": "ON",
+        "payload_off": "OFF",
+        "retain": True,
+        "icon": "mdi:file-code",
+        "entity_category": "config",
+    })
+
+    # Sensor: Last parsed chamber target (informational)
+    _add("sensor", "gcode_chamber_target", {
+        "name": "G-code Chamber Target",
+        "state_topic": "~/state",
+        "value_template": "{{ value_json.gcode_chamber_target }}",
+        "unit_of_measurement": "°C",
+        "device_class": "temperature",
+        "state_class": "measurement",
+        "icon": "mdi:thermometer-auto",
+        "entity_category": "diagnostic",
+    })
+
+    # Sensor: Last seen print filename (informational)
+    _add("sensor", "gcode_print_file", {
+        "name": "G-code Print File",
+        "state_topic": "~/state",
+        "value_template": "{{ value_json.gcode_print_file }}",
+        "icon": "mdi:file",
+        "entity_category": "diagnostic",
     })
 
     return configs

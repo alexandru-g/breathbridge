@@ -82,6 +82,14 @@ def parse_chamber_temp(text: str) -> int | None:
     return None
 
 
+_CONN_ERRS = (
+    aiohttp.ClientConnectorError,
+    aiohttp.ServerDisconnectedError,
+    aiohttp.ClientConnectionError,
+    asyncio.TimeoutError,
+)
+
+
 class SlicerWatcher:
     def __init__(
         self,
@@ -90,14 +98,19 @@ class SlicerWatcher:
         poll_interval: float,
         tail_bytes: int,
         on_detect: Callable[[str, int | None], Awaitable[None]],
+        on_print_ended: Callable[[], Awaitable[None]] | None = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._poll_interval = poll_interval
         self._tail_bytes = tail_bytes
         self._on_detect = on_detect
+        self._on_print_ended = on_print_ended
         self._last_filename: str | None = None
         self._last_fetch_succeeded = False
+        # None until first poll; True/False afterwards. Used to log connect
+        # errors once per disconnect event instead of on every poll.
+        self._reachable: bool | None = None
 
     async def run(self, shutdown: asyncio.Event) -> None:
         headers = {"X-Api-Key": self._api_key, "Accept": "application/json"}
@@ -109,12 +122,27 @@ class SlicerWatcher:
                     await self._poll_once(session)
                 except asyncio.CancelledError:
                     raise
+                except _CONN_ERRS as exc:
+                    if self._reachable is not False:
+                        logger.warning(
+                            "SlicerWatcher: %s unreachable (%s: %s) — will retry silently",
+                            self._base_url,
+                            exc.__class__.__name__,
+                            exc,
+                        )
+                        self._reachable = False
+                    else:
+                        logger.debug("SlicerWatcher still unreachable: %s", exc)
                 except Exception as exc:  # pragma: no cover — defensive
                     logger.warning(
                         "SlicerWatcher poll failed: %s: %s",
                         exc.__class__.__name__,
                         exc,
                     )
+                else:
+                    if self._reachable is False:
+                        logger.info("SlicerWatcher: %s reachable again", self._base_url)
+                    self._reachable = True
 
                 try:
                     await asyncio.wait_for(shutdown.wait(), timeout=self._poll_interval)
@@ -125,7 +153,11 @@ class SlicerWatcher:
         async with session.get(f"{self._base_url}/api/v1/job") as resp:
             if resp.status == 204:
                 # No active job. Reset so we re-detect the next print.
-                self._last_filename = None
+                if self._last_filename is not None:
+                    self._last_filename = None
+                    self._last_fetch_succeeded = False
+                    if self._on_print_ended is not None:
+                        await self._on_print_ended()
                 return
             if resp.status == 401:
                 logger.error("PrusaLink rejected the API key (slicer watcher)")

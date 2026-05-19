@@ -11,6 +11,14 @@ import aiohttp
 logger = logging.getLogger(__name__)
 
 
+_CONN_ERRS = (
+    aiohttp.ClientConnectorError,
+    aiohttp.ServerDisconnectedError,
+    aiohttp.ClientConnectionError,
+    asyncio.TimeoutError,
+)
+
+
 class PrusaLinkPoller:
     def __init__(
         self,
@@ -23,6 +31,9 @@ class PrusaLinkPoller:
         self._api_key = api_key
         self._interval = interval
         self._on_update = on_update
+        # None until first poll; True/False afterwards. Used to log connect
+        # errors once per disconnect event instead of on every poll.
+        self._reachable: bool | None = None
 
     async def run(self, shutdown: asyncio.Event) -> None:
         headers = {"X-Api-Key": self._api_key, "Accept": "application/json"}
@@ -34,8 +45,23 @@ class PrusaLinkPoller:
                     await self._poll_once(session)
                 except asyncio.CancelledError:
                     raise
+                except _CONN_ERRS as exc:
+                    if self._reachable is not False:
+                        logger.warning(
+                            "PrusaLink unreachable at %s (%s: %s) — will retry silently",
+                            self._url,
+                            exc.__class__.__name__,
+                            exc,
+                        )
+                        self._reachable = False
+                    else:
+                        logger.debug("PrusaLink still unreachable: %s", exc)
                 except Exception as exc:  # pragma: no cover — defensive
                     logger.warning("PrusaLink poll failed: %s", exc)
+                else:
+                    if self._reachable is False:
+                        logger.info("PrusaLink reachable again at %s", self._url)
+                    self._reachable = True
 
                 try:
                     await asyncio.wait_for(shutdown.wait(), timeout=self._interval)

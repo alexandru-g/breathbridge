@@ -174,6 +174,26 @@ class Bridge:
         await self._publish_state(force=True)
         logger.info("Auto-set Panda chamber temp from %s: %d°C", filename, chamber)
 
+    async def _on_print_ended(self) -> None:
+        """PrusaLink reports no active job — clear gcode-derived state.
+
+        If we previously auto-set the Panda's chamber setpoint, drop it back to
+        0 so it doesn't keep heating to the last print's target.
+        """
+        s = self._state.state
+        had_target = s.gcode_chamber_target is not None
+        prev_file = s.gcode_print_file
+        s.gcode_chamber_target = None
+        s.gcode_print_file = None
+
+        if had_target and s.gcode_chamber_temp_enabled:
+            await self._ws.send_command("settings", {"set_temp": 0})
+            self._state.update({"settings": {"set_temp": 0}})
+            logger.info("Print ended (%s) — reset Panda chamber setpoint to 0", prev_file)
+        else:
+            logger.info("Print ended (%s) — cleared gcode chamber target", prev_file)
+        await self._publish_state(force=True)
+
     async def _slicer_watcher_runner(self) -> None:
         s = self._settings
         if not s.prusalink_host or not s.prusalink_api_key:
@@ -187,6 +207,7 @@ class Bridge:
             poll_interval=s.slicer_watcher_poll_interval,
             tail_bytes=s.slicer_watcher_tail_bytes,
             on_detect=self._on_gcode_chamber_temp,
+            on_print_ended=self._on_print_ended,
         )
         logger.info("Slicer watcher started against %s", base)
         await watcher.run(self._shutdown)

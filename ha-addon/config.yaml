@@ -1,5 +1,5 @@
 name: "BreathBridge"
-version: "0.7.2"
+version: "0.7.3"
 hassio_api: true
 slug: "panda_breath_mqtt"
 description: "Integrates the Biqu Panda Breath with Home Assistant, Moonraker (faked), PrusaLink and PrusaSlicer gcode"
